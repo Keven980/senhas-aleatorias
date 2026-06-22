@@ -1,1 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Senhas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 500px;
+            max-width: 95%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .password-display {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+            transition: border-color 0.3s;
+        }
+
+        .password-display:focus-within {
+            border-color: #667eea;
+        }
+
+        #password {
+            border: none;
+            background: transparent;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            width: 100%;
+            outline: none;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            white-space: nowrap;
+            margin-left: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        .strength-meter {
+            margin: 25px 0;
+        }
+
+        .strength-bar {
+            width: 100%;
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            transition: all 0.5s ease;
+        }
+
+        .strength-label {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .strength-text {
+            font-weight: bold;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-size: 14px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .control-group input[type="number"] {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input[type="number"]:focus {
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .checkbox-group label {
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .generate-btn {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 5px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0px);
+        }
+
+        .history {
+            margin-top: 20px;
+            border-top: 2px solid #f0f0f0;
+            padding-top: 20px;
+        }
+
+        .history h3 {
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .history-list {
+            max-height: 100px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .history-item .badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .badge-weak { background: #ff6b6b; color: white; }
+        .badge-medium { background: #ffd93d; color: #333; }
+        .badge-strong { background: #6bcb77; color: white; }
+
+        @media (max-width: 500px) {
+            .container {
+                padding: 25px;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Gerador de Senhas</h1>
+        
+        <div class="password-display">
+            <input type="text" id="password" readonly placeholder="Clique em Gerar">
+            <button class="copy-btn" onclick="copyPassword()">📋 Copiar</button>
+        </div>
+
+        <div class="strength-meter">
+            <div class="strength-bar">
+                <div class="strength-fill" id="strengthFill"></div>
+            </div>
+            <div class="strength-label">
+                <span>Fraca</span>
+                <span class="strength-text" id="strengthText">Média</span>
+                <span>Forte</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="length">Comprimento</label>
+                <input type="number" id="length" min="4" max="50" value="12">
+            </div>
+            
+            <div class="control-group">
+                <label>Opções</label>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="uppercase" checked>
+                    <label for="uppercase">Maiúsculas</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="numbers" checked>
+                    <label for="numbers">Números</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="special" checked>
+                    <label for="special">Especiais</label>
+                </div>
+            </div>
+
+            <button class="generate-btn" onclick="generatePassword()">🔄 Gerar Senha</button>
+        </div>
+
+        <div class="history">
+            <h3>📜 Últimas senhas geradas</h3>
+            <div class="history-list" id="historyList"></div>
+        </div>
+    </div>
+
+    <script>
+        let passwordHistory = [];
+
+        function generatePassword() {
+            const length = parseInt(document.getElementById('length').value);
+            const useUppercase = document.getElementById('uppercase').checked;
+            const useNumbers = document.getElementById('numbers').checked;
+            const useSpecial = document.getElementById('special').checked;
+
+            // Verifica se pelo menos uma opção está selecionada
+            if (!useUppercase && !useNumbers && !useSpecial) {
+                alert('Selecione pelo menos uma opção de caractere!');
+                return;
+            }
+
+            let charset = 'abcdefghijklmnopqrstuvwxyz';
+            if (useUppercase) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            if (useNumbers) charset += '0123456789';
+            if (useSpecial) charset += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * charset.length);
+                password += charset[randomIndex];
+            }
+
+            // Garante que todos os tipos selecionados estejam presentes
+            if (useUppercase && !/[A-Z]/.test(password)) {
+                const pos = Math.floor(Math.random() * password.length);
+                const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                password = password.substring(0, pos) + upperChars[Math.floor(Math.random() * upperChars.length)] + password.substring(pos + 1);
+            }
+            if (useNumbers && !/[0-9]/.test(password)) {
+                const pos = Math.floor(Math.random() * password.length);
+                const numChars = '0123456789';
+                password = password.substring(0, pos) + numChars[Math.floor(Math.random() * numChars.length)] + password.substring(pos + 1);
+            }
+            if (useSpecial && !/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)) {
+                const pos = Math.floor(Math.random() * password.length);
+                const specialChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+                password = password.substring(0, pos) + specialChars[Math.floor(Math.random() * specialChars.length)] + password.substring(pos + 1);
+            }
+
+            document.getElementById('password').value = password;
+            updateStrength(password);
+            addToHistory(password);
+        }
+
+        function updateStrength(password) {
+            const fill = document.getElementById('strengthFill');
+            const text = document.getElementById('strengthText');
+            
+            let score = 0;
+            
+            // Critérios de força
+            if (password.length >= 8) score++;
+            if (password.length >= 12) score++;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+            if (/\d/.test(password)) score++;
+            if (/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)) score++;
+            if (password.length >= 16) score++;
+
+            let strength = '';
+            let color = '';
+            let percentage = 0;
+
+            if (score <= 2) {
+                strength = 'Fraca';
+                color = '#ff6b6b';
+                percentage = 33;
+            } else if (score <= 4) {
+                strength = 'Média';
+                color = '#ffd93d';
+                percentage = 66;
+            } else {
+                strength = 'Forte';
+                color = '#6bcb77';
+                percentage = 100;
+            }
+
+            fill.style.width = percentage + '%';
+            fill.style.background = color;
+            text.textContent = strength;
+            text.style.color = color;
+        }
+
+        function addToHistory(password) {
+            const strength = document.getElementById('strengthText').textContent;
+            passwordHistory.unshift({ password, strength });
+            
+            if (passwordHistory.length > 10) {
+                passwordHistory.pop();
+            }
+
+            updateHistoryDisplay();
+        }
+
+        function updateHistoryDisplay() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            
+            passwordHistory.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                
+                const badgeClass = item.strength === 'Fraca' ? 'badge-weak' : 
+                                  item.strength === 'Média' ? 'badge-medium' : 'badge-strong';
+                
+                div.innerHTML = `
+                    <span>${item.password}</span>
+                    <span class="badge ${badgeClass}">${item.strength}</span>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function copyPassword() {
+            const password = document.getElementById('password').value;
+            if (!password) {
+                alert('Gere uma senha primeiro!');
+                return;
+            }
+
+            navigator.clipboard.writeText(password).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copiado!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }).catch(() => {
+                // Fallback para navegadores mais antigos
+                const input = document.getElementById('password');
+                input.select();
+                document.execCommand('copy');
+                alert('Senha copiada para a área de transferência!');
+            });
+        }
+
+        // Gera uma senha ao carregar a página
+        window.onload = function() {
+            generatePassword();
+        };
+
+        // Permite gerar senha com Enter no campo de comprimento
+        document.getElementById('length').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generatePassword();
+            }
+        });
+    </script>
+</body>
+</html>
